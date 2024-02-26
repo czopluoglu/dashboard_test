@@ -1,0 +1,303 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: journal
+---
+
+```{r setup, include=FALSE}
+require(flexdashboard)
+require(ggplot2)
+require(ggExtra)
+require(grid)
+require(tidyverse)
+require(shadowtext)
+require(fmsb)
+require(plotly)
+require(dygraphs)
+require(visNetwork)
+require(psych)
+
+names <- c("Hantavirus", "Tularemia", "Dengue", "Ebola", "E. coli", 
+           "Tuberculosis", "Salmonella", "Vaccinia", "Brucella")
+  
+data <- data.frame(count = c(6, 7, 7, 9, 11, 15, 17, 18, 54), 
+                   name = factor(names, levels = names),
+                   y = seq(length(names)) * 0.9)
+
+BLUE  <- "#076fa2"
+RED   <- "#E3120B"
+BLACK <- "#202020"
+GREY  <- "grey50"
+  
+
+
+data2 <- as.data.frame(matrix( sample( 2:20 , 10 , replace=T) , ncol=10))
+
+colnames(data2) <- c("math" , "english" , "biology" , "music" , "R-coding", 
+                    "data-viz" , "french" , "physic", "statistic", "sport" )
+ 
+data2 <- rbind(rep(20,10) , rep(0,10) , data2)
+ 
+```
+
+Sidebar Title {.sidebar}
+==========================
+Your text here. You can use markdown syntax, including 
+[links](http://blah.com), *italics*, **bolding**, etc.
+
+
+Page 1 {data-icon="fa-list"}
+=======================================
+
+Column {data-width=400}
+----------------------------------------
+
+### Chart A
+
+This is **typical** .Rmd text.
+
+```{r}
+
+p <- ggplot(mtcars, aes(x=wt, y=mpg, color=cyl, size=cyl)) +
+  geom_point() +
+  theme(legend.position="none")
+
+ggplotly(p)
+```
+
+Column {data-width=300}
+----------------------------------------
+
+### Chart B
+
+```{r}
+
+q <- ggplot(data) +
+  geom_col(aes(count, name), fill = BLUE, width = 0.6)+
+  scale_x_continuous(
+    limits = c(0, 55.5),
+    breaks = seq(0, 55, by = 5), 
+    expand = c(0, 0), # The horizontal axis does not extend to either side
+    position = "top"  # Labels are located on the top
+  ) +
+  scale_y_discrete(expand = expansion(add = c(0, 0.5))) +
+    theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 22),
+    plot.subtitle = element_text(
+      size = 20),
+    #Make room for annotations
+    plot.margin = margin(0.05, 0, 0.1, 0.01, "npc"),
+    # Set background color to white
+    panel.background = element_rect(fill = "white"),
+    # Set the color and the width of the grid lines for the horizontal axis
+    panel.grid.major.x = element_line(color = "#A8BAC4", size = 0.3),
+    # Remove tick marks by setting their length to 0
+    axis.ticks.length = unit(0, "mm"),
+    # Remove the title for both axes
+    axis.title = element_blank(),
+    # Only left line of the vertical axis is painted in black
+    axis.line.y.left = element_line(color = "black"),
+    # Remove labels from the vertical axis
+    axis.text.y = element_blank()
+  )+
+  geom_shadowtext(
+    data = subset(data, count < 8),
+    aes(count, y = name, label = name),
+    hjust = 0,
+    nudge_x = 0.3,
+    colour = BLUE,
+    bg.colour = "white",
+    bg.r = 0.2,
+    size = 7
+  ) + 
+  geom_text(
+    data = subset(data, count >= 8),
+    aes(0, y = name, label = name),
+    hjust = 0,
+    nudge_x = 0.3,
+    colour = "white",
+    size = 7
+  )+
+  labs(
+    title = "Escape artists",
+    subtitle = "Number of laboratory-acquired infections, 1970-2021"
+  ) 
+
+ggplotly(q)
+```
+
+### Chart C
+
+```{r}
+radarchart(data2, 
+           axistype=1 , 
+           pcol=rgb(0.2,0.5,0.5,0.9), 
+           pfcol=rgb(0.2,0.5,0.5,0.5), 
+           plwd=4, 
+           cglcol="grey", 
+           cglty=1, 
+           axislabcol="grey", 
+           caxislabels=seq(0,20,5), 
+           cglwd=0.8,
+           vlcex=0.8 )
+
+```
+
+Page 2 {data-orientation=rows data-icon="fa-hashtag"}
+==============================
+
+Row {data-height=400}
+-----------------------------------------
+
+### Chart A
+
+```{r}
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+```
+
+Row {data-height=400}
+-----------------------------------------
+### Chart B
+
+```{r}
+ggplotly(q)
+```
+
+### Chart C
+
+```{r}
+radarchart(data2, 
+           axistype=1 , 
+           pcol=rgb(0.2,0.5,0.5,0.9), 
+           pfcol=rgb(0.2,0.5,0.5,0.5), 
+           plwd=4, 
+           cglcol="grey", 
+           cglty=1, 
+           axislabcol="grey", 
+           caxislabels=seq(0,20,5), 
+           cglwd=0.8,
+           vlcex=0.8 )
+```
+
+Page 3 {style="position:relative;" data-icon='fa-check'}
+==============================
+
+Column
+-----------------------------------------
+
+### Chart A
+
+```{r}
+nodes <- data.frame(id = 1:6, title = paste("node", 1:6), 
+                    shape = c("dot", "square"),
+                    size = 10:15, color = c("blue", "red"))
+edges <- data.frame(from = 1:5, to = c(5, 4, 6, 3, 3))
+visNetwork(nodes, edges) %>%
+  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
+```
+
+Column {style="height:100pc;"}
+-----------------------------------------
+
+### Chart B
+
+```{r}
+ggplotly(q)
+```
+
+### Chart C
+    
+```{r}
+q
+```
+  
+### Chart D
+
+```{r}
+radarchart(data2, 
+           axistype=1 , 
+           pcol=rgb(0.2,0.5,0.5,0.9), 
+           pfcol=rgb(0.2,0.5,0.5,0.5), 
+           plwd=4, 
+           cglcol="grey", 
+           cglty=1, 
+           axislabcol="grey", 
+           caxislabels=seq(0,20,5), 
+           cglwd=0.8,
+           vlcex=0.8 )
+```
+
+### Chart E
+
+```{r}
+p
+```
+
+### Chart F
+
+```{r}
+q
+```
+
+### Chart G
+
+```{r}
+p
+```
+
+### Chart H
+
+```{r}
+q
+```
+
+### Chart I
+
+```{r}
+p
+```
+
+Page 4 {.storyboard}
+==============================
+
+### Plot 1 {data-commentary-width=400}
+
+
+```{r}
+
+p <- ggplot(mtcars, aes(x=wt, y=mpg, color=cyl, size=cyl)) +
+  geom_point() +
+  theme(legend.position="none")
+
+ggMarginal(p,type="density")
+ 
+```
+
+****
+
+Lots to say here. There is important
+
+### Plot 2 {data-commentary-width=400}
+
+```{r}
+radarchart(data2, 
+           axistype=1 , 
+           pcol=rgb(0.2,0.5,0.5,0.9), 
+           pfcol=rgb(0.2,0.5,0.5,0.5), 
+           plwd=4, 
+           cglcol="grey", 
+           cglty=1, 
+           axislabcol="grey", 
+           caxislabels=seq(0,20,5), 
+           cglwd=0.8,
+           vlcex=0.8 )
+```
+
+****
+
+Move along...
+
